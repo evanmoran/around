@@ -68,27 +68,20 @@ launch = (cmd, args=[], options, callback = ->) ->
 #───────────────────────────
 
 task "build", "Build everything and run tests", ->
-  invoke "build:js"
   invoke "build:docs"
   invoke "test"
-
-task "build:js", "Compile coffee script files", ->
-  launch 'coffee', ['--compile', 'src/oj.coffee']
-
-task "build:js:watch", "Watch compile coffee script files", ->
-  launch 'coffee', ['--compile', '--lint', '-o', 'src', '--watch', 'src']
 
 task "build:docs", "Build documentation", ->
   invoke 'build:groc'
 
 task "build:groc", "Build groc documentation", ->
-  launch 'groc', ['--out', 'docs', 'src/*.coffee']
+  launch 'groc', ['--out', 'docs', 'src/*.coffee', 'src/*.js']
 
 task "build:docco", "Build docco documentation", ->
   launch 'docco', ['src/*.coffee']
 
 task "view:docs", "Open documentation in a browser", ->
-  launch 'open', ['docs/oj.html']
+  launch 'open', ['docs/around.html']
 
 task "docs", "Build and view docs", ->
   invoke 'build:docs'

@@ -27,16 +27,31 @@ describe 'Function.prototype', ->
 
   add = (a,b)->a+b
   multiply = (a,b)->a*b
-  throw5 = -> throw 5
-  number5 = -> 5
-  str5 = -> "5"
-  plus5 = (a)->a+5
-  minus5 = (a)->a-5
-  times5 = (a)->a*5
-  divide5 = (a)->a/5
-  minus7 = (a)->a-7
-  times3 = (a)->a*3
-  divide2 = (a)->a/2
+
+  thrower = (v) ->
+    ->
+      # console.log "throw#{v}"
+      throw v
+
+  minus = (v) ->
+    (n) ->
+      # console.log "minus#{v}: ", n
+      n-v
+
+  plus = (v) ->
+    (n) ->
+      # console.log "plus#{v}: ", n
+      n+v
+
+  times = (v) ->
+    (n) ->
+      # console.log "times#{v}: ", n
+      n*v
+
+  divide = (v) ->
+    (n) ->
+      # console.log "divide#{v}: ", n
+      n/v
 
   Function.prototype.trace = (arr) ->
     throw 'trace expects array' unless _.isArray arr
@@ -47,27 +62,20 @@ describe 'Function.prototype', ->
       arr[arr.length-1].out = rval
     )
 
-  # describe '.around', ->
-  #   it 'a', ->
-  #     arr = []
-  #     add_ = add.trace arr
-  #     add_ 3,10
-  #     console.log 'arr: ', arr
-
   describe '.before', ->
     it 'one cut', ->
-      plus5(4).should.equal 9
-      minus7(4).should.equal -3
-      minus7_plus5 = plus5.before(minus7)
+      plus(5)(4).should.equal 9
+      minus(7)(4).should.equal -3
+      minus7_plus5 = plus(5).before(minus(7))
       minus7_plus5(12).should.equal 10
       minus7_plus5(14).should.equal 12
 
     it 'many cuts', ->
-      times3(4).should.equal 12
-      times3_minus7_plus5 = plus5.before(minus7).before(times3)
+      times(3)(4).should.equal 12
+      times3_minus7_plus5 = plus(5).before(minus(7)).before(times(3))
       times3_minus7_plus5(3).should.equal ((3*3)-7)+5
 
-      plus5_times3_minus7 = minus7.before(times3).before(plus5)
+      plus5_times3_minus7 = minus(7).before(times(3)).before(plus(5))
       plus5_times3_minus7(3).should.equal ((3+5)*3)-7
 
     it 'multiple argument pass through', ->
@@ -75,16 +83,36 @@ describe 'Function.prototype', ->
       sumOfSquares(2,3).should.equal 2*2+3*3
 
     it 'skip with around.breaker', ->
-      yesThrow = throw5.before -> 7
+      yesThrow = thrower(5).before -> 7
       assert.throw yesThrow, 'yesThrow should throw'
 
-      noThrow = throw5.before -> around.breaker
+      noThrow = thrower(5).before -> around.breaker
       assert.doesNotThrow noThrow, 'noThrow should not throw'
+      assert.isUndefined noThrow(), 'noThrow should return undefined and not throw'
 
-      # noThrow().should.equal 7
-      # noThrow()
+      noThrowWithResult = thrower(5).before -> [around.breaker, 7]
+      assert.equal noThrowWithResult(), 7, 'noThrowWithResult should result a result'
+
   describe '.after', ->
-    it 'a', ->
+    it 'one cut', ->
+      plus5_minus7 = plus(5).after(minus(7))
+      plus5_minus7(12).should.equal 10
+      plus5_minus7(14).should.equal 12
+
+    # it 'many cuts', ->
+    #   times(3)(4).should.equal 12
+    #   plus5_minus7_times3 = plus(5).after(minus(7)).after(times(3))
+    #   plus5_minus7_times3(3).should.equal ((3+5)-7)*3
+
+    #   minus7_times3_plus5 = minus(7).after(times(3)).after(plus(5))
+    #   minus7_times3_plus5(3).should.equal ((3-7)*3)+5
+
+  # describe '.around', ->
+  #   it 'a', ->
+  #     arr = []
+  #     add_ = add.trace arr
+  #     add_ 3,10
+  #     console.log 'arr: ', arr
 
   # class Door
   #   constructor: (@_state) ->
